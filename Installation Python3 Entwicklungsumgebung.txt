@@ -1,0 +1,194 @@
+Installation Python3 Entwicklungsumgebung.txt
+
+div. Notizen und kurze Wegleitung für steinigen Weg der Entwicklung in Python...
+
+Stefan Braun / sbraun@datacomm.ch
+
+[Warnung: Text ist "work in progress"]
+==>to do: sobald Weg gefunden ist, diesen sauber dokumentieren!!!
+
+
+(Entwicklersystem: Win10 Pro x64)
+=>jedoch Anwendungen sollen auch auf Win7 32Bit laufen,
+darum Python 3 x32 (Anaconda3) als Root-Anaconda-Environment
+
+
+1) Installation Anaconda:
+https://www.anaconda.com/download/
+
+=>Installation "all users"
+=>Zu Beachten: Pfad ohne Leerzeichen: https://docs.anaconda.com/anaconda/faq#in-what-folder-should-i-install-anaconda-on-windows
+==>gewählt: C:\Anaconda3
+=>Installation ohne "Microsoft VSCode".
+
+
+2) ev: GitHub Desktop installieren
+https://desktop.github.com/
+https://central.github.com/deployments/desktop/desktop/latest/win32
+
+
+3) Git for Windows installieren
+(gemäss https://github.com/desktop/desktop/issues/3801
+können so externe Programme wie z.B. PyCharm Git-Funktionalität nutzen)
+https://gitforwindows.org/
+
+=>bei Installation: Notepad++ als Git-Standard-Editor konfigurieren.
+
+
+4) PyCharm installieren
+PyCharm Community Version wählen
+https://www.jetbrains.com/pycharm/download/#section=windows
+
+=>Desktop-Link "64-bit launcher"
+=>.py File Association erstellen
+=>"Download and install JRE x86 by JetBrains" (irgendwo stand diese Empfehlung...)
+
+
+5) ev: Test der Installation:
+-bei Start von PyCharm "Check out from Version Control"
+=>Git wählen, https://github.com/stefanbraun-private/pyVisiToolkit.git
+
+-via Startmenü "Anaconda-Navigator" starten
+prüfen, welche Environments vorhanden sind
+
+
+6) Beispiel: neues Projekt "visitoolkit_connector",
+als Teil eines grösseren Projektes
+=>damit möglichst keine Probleme und Verwechslungen auftauchen:
+-auf PyPI prüfen ob Projektname einmalig ist
+-aus Markenschutzgründen im Internet nach Namensgleichheit suchen
+-beabsichtigte Konsistenz: Python-Package-Name == Projektname in Pycharm == Projektname auf PyPI
+ ==>LEIDER hat man folgende Unschönheit/Einschränkung:
+    -Python-Package-Name: darf keine Bindestriche enthalten, wird als Subtraktion geparst und ergibt somit Syntax-Error beim Import...
+    -Projektname auf PyPI: alle Sonderzeichen und Unterstriche werden durch Bindestriche ersetzt
+    -um Wortkombinationen lesbar zu machen und möglichst den Python-Richtlinien zu folgen,
+     muss somit alles klein geschrieben und mit Unterstrichen getrennt sein.
+     =>damit PyPI-Package problemlos importiert werden kann: Unterschied beachten!!!
+       PyPI-Projekt: 'visitoolkit-connector' // Python-Package: 'visitoolkit_connector'
+     (nach vielen erfolglosen Versuchen wundert es mich, dass diese Fehlerquelle kaum irgendwo erwähnt wird...!)
+       http://pybuilder.github.io/documentation/external_plugins.html#Pluginnaming
+       https://mail.python.org/pipermail/distutils-sig/2011-August/017936.html
+
+
+
+
+
+-"Pycharm" starten, "create new "project",
+Name/Ablageort normalerweise im Benutzerverzeichnis: "C:\Users\Asenta\PycharmProjects\visitoolkit_connector"
+(neues Conda-Environment "visitoolkit_connector" (Python 3.x) erstellen lassen,
+Option "Make available to all projects" nicht aktivieren)
+
+-"Pycharm" -> New Python package: "visitoolkit_connector" ->ergibt Unterordner im Python-Projektordner
+"connector.py" in diesen Unterordner kopieren oder in "Pycharm" erstellen
+
+-"Pycharm" -> "Settings" -> "Project: visitoolkit_connector" -> "Interpreter"
+  (für Veröffentlichung benötigt)
+  -> Package "twine" und "docutils" via Conda installieren (grünes "Conda"-Icon aktiv, dann "+")
+
+  (für Entwicklung benötigt)
+  -> Package "visitoolkit-eventsystem" via PyPI installieren (grünes "Conda"-Icon inaktiv, dann "+"),
+  -> ebenfalls via PyPI: "websocket-client-py3" installieren
+  -> ebenfalls via PyPI: "python-dateutil" installieren
+     zur Vermeidung von Inkompatibilitäten auf bestimmte Version achten
+     (siehe "install_requires" in "setup.py";
+      pip müsste dann beim Installieren dieses Packages die Abhängigkeiten automatisch auflösen)
+
+
+Zum Start der Programmierung alle Python-Packages im aktuellen Environment auf den aktuellen Stand bringen:
+-"Pycharm" beenden
+-"Anaconda Prompt" starten
+-conda Environment aktivieren: "activate visitoolkit_connector"
+-conda selber aktualisieren: "conda update -n base conda"
+-das Anaconda-Metapaket aktualisieren: "conda install -c anaconda python"
+
+
+Für exakte Duplizierung der Entwicklungsumgebung die Version aller genutzten Conda-Packages erfassen:
+(gemäss https://datascience.stackexchange.com/questions/24093/how-to-clone-python-working-environment-on-another-machine)
+-"Anaconda Prompt" starten
+-conda Environment aktivieren: "activate visitoolkit_connector"
+"cd C:\Users\Asenta\PycharmProjects\visitoolkit_connector"
+"conda env export > environment.yml" erzeugt Datei "environment.yml"
+=>Wiederherstellung klappe dann folgendermassen: "conda env create -f environment.yml" // dies habe ich noch nicht ausprobiert...
+
+
+
+
+7) Veröffentlichung Projekt:
+
+Vorbereitung: ev. folgende Dateien überarbeiten:
+.gitignore	// Unterordner ".idea" schliesse ich nicht aus git aus, vielleicht nützt es mal in Zukunft, wenn komplette Umgebung neu installiert werden muss
+CHANGES.txt
+LICENSE.txt
+MANIFEST.in	// Inhalt ist mir nicht mehr ganz klar... :-/
+README.md	// in "Pycharm" gibts guten "MarkDown"-Editor! Die gerenderte Ausgabe wird auf GitHub Projektwebseite veröffentlicht
+setup.py	// Grundgerüst kann in "Pycharm" -> "Tools" generiert werden / diverse Erkenntnisse müssen von Hand eingepflegt werden!
+
+
+
+in PyCharm:
+->Einstellungen ->VCS GitHub Account hinterlegen
+->VCS ->publish on GitHub (NUR beim ersten Mal und falls es noch nicht existiert!)
+->VCS ->Git ->Commit (nach jeder Code-Änderung, dies beeinflusst nur lokales Repository)
+->VCS ->Git ->Push... (dies lädt die letzten Änderungen auf GitHub)
+
+
+
+PyPI Package erstellen und veröffentlichen:
+-"Pycharm" -> "Tools" -> "setup.py"-Tasks "sdist" und "bdist_wheel" ausführen
+
+-"Anaconda Prompt" starten
+-conda Environment aktivieren: "activate visitoolkit_connector"
+-in Projektverzeichnis wechseln: "cd C:\Users\Asenta\PycharmProjects\visitoolkit_connector"
+-hochladen des in ...\dist\. erzeugten Python-Installationspakets: "twine upload dist\*"
+(Ziel ist defaultmässig PyPI.org, twine fragt dann nach PyPI-Benutzer/Passwort)
+=>bei Fehler "HTTPError: 400 Client Error: This filename has already been used, use a different version."
+  löscht man am besten die alten Releases im Unterverzeichnis ...\dist
+=>Paket ist dann unter https://pypi.org/project/visitoolkit_connector
+(HINWEIS: offenbar ersetzt PyPI den "_" mit einem "-", darum heisst das PyPI-Paket dann "visitoolkit-eventsystem"...)
+
+
+==>nun müsste das Python-Package von allen Python-Entwicklern genutzt werden können,
+z.B. in "Pycharm" -> "Settings" -> "Project xxx" -> "Project Interpreter"
+  (grünes Conda-Zeichen muss inaktiv sein, da wir auf PyPI und nicht auf Anaconda suchen)
+  mittels "+" nach Paket suchen oder allenfalls mittels "^" das neueste Release installieren
+z.B. -"Anaconda Prompt" starten, mittels "conda" existierendes Environment aktivieren: "activate xyz"
+  dann z.B. "pip install visitoolkit-eventsystem"
+  (mittels "pip install --upgrade visitoolkit-eventsystem" bekommt man das neueste Release)
+
+
+==========================================================================================================
+
+Anhang: diverse ausführliche Notizen und Erkenntnisse nach diversen Recherchen... :-/
+**************************************************************************************
+=>PyPI Package erstellen:
+-siehe https://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/index.html
+-PyPI-Projektbeschreibung (PyPI-Webseite des Package) kann aus existierender "README.md" generiert werden:
+ https://packaging.python.org/guides/making-a-pypi-friendly-readme/
+ (=>README-Datei für GitHub ist in MarkDown *.md formatiert, PyCharm hat internen Editor inkl. Vorschau)
+in PyCharm kann mittels "Tools" direkt setup.py erstellt und "setup.py-Task" aufgerufen werden
+(jedoch fehlt Paket "docutils"...
+somit "Settings"->"Python Interpreter"->"use Conda" / "+" nach diesem Paket suchen und dieses installieren.
+
+=>aktuellere Anleitung:
+https://packaging.python.org/tutorials/packaging-projects/#uploading-your-project-to-pypi
+(somit Paket "twine" installieren mittels PyCharm)
+==>zu beachten: https://anweshadas.in/how-to-upload-a-package-in-pypi-using-twine/
+==>Anleitung: https://pypi.org/project/twine/
+
+==>Twine in Anaconda nutzen
+(SO GEHT ES nachdem man die setup.py-Tasks bis "register" durchgeführt hat;
+neuerdings läuft PyPI mit "Warehouse" und "register"-Kommando vor dem "upload" wird beim neuen pypi.org nicht mehr verwendet!!!):
+-"Anaconda Prompt" starten
+-conda Environment aktivieren: "activate pyVisiToolkit-eventsystem"
+-in Projektverzeichnis wechseln: "cd C:\Users\Asenta\PycharmProjects\pyVisiToolkit-eventsystem"
+-hochladen des in ...\dist\. erzeugten Python-Installationspakets: "twine upload dist\*"
+(Ziel ist defaultmässig PyPI.org, twine fragt dann nach PyPI-Benutzer/Passwort)
+=>Paket ist dann unter https://pypi.org/project/pyVisiToolkit-eventsystem
+
+
+to do:
+lesen: https://datascience.stackexchange.com/questions/24093/how-to-clone-python-working-environment-on-another-machine
+lesen: http://python-packaging.readthedocs.io/en/latest/minimal.html
+lesen: http://docs.python-guide.org/en/latest/writing/structure/
+lesen: https://legacy.python.org/dev/peps/pep-0423/
+Umstrukturieren: https://github.com/stefanbraun-private/pyVisiToolkit.git
