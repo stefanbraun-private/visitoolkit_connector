@@ -20,11 +20,28 @@ An INOFFICIAL OpenSource client library written in Python to
 - event-based monitoring of datapoints 
 
 **visitoolkit_connector** communicates over websockets to DMS and implements the official 'DMS JSON Data Exchange' protocol.   
+All JSON objects (requests and responses) are mapped to instances of Python classes.  
+All JSON values are mapped to attributes.  
+Events from datapoint subscriptions are handled by **visitoolkit_eventsystem** for executing your Python callbacks in a background thread.  
+
+
+*documentation for this protocol is without any warranty temporary available under
+https://github.com/stefanbraun-private/stefanbraun-private.github.io/tree/master/ProMoS_dev_docs  
+All rights reserved by the respective owner 'MST Systemtechnik AG'* 
+
 
 ## usage
-    import visitoolkit_connector.connector as connector
-    ....
-*FIXME: add examples...*
+```python
+from visitoolkit_connector import connector
+```
+*FIXME: add examples...*   
+   
+   
+Increasing logging level for bughunting:
+```python
+import logging
+logging.getLogger('visitoolkit_connector').setLevel(logging.DEBUG)
+```
 
 ## background information
 **visitoolkit_connector** is a core part of **visitoolkit**. 

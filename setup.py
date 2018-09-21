@@ -12,9 +12,9 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='visitoolkit-connector',
-    version='0.1.0',
+    version='0.1.1',
     packages=['visitoolkit_connector'],
-    install_requires=['visitoolkit-eventsystem==0.1.4',
+    install_requires=['visitoolkit-eventsystem==0.1.5',
                       'websocket-client-py3==0.15.0',
                       'python-dateutil==2.7.3'],
     url='https://github.com/stefanbraun-private/visitoolkit_connector',
