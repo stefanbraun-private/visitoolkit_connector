@@ -66,6 +66,7 @@ import websocket
 import _thread
 import threading
 import collections.abc
+from collections import namedtuple
 import dateutil.parser
 import logging
 import queue
@@ -151,10 +152,10 @@ ON_ALL       = 31
 
 
 
-class _Mydict(collections.abc.Mapping):
+class _Mydict(collections.abc.MutableMapping):
     """ dictionary-like superclass with attribute access """
 
-    # inherit from abstract class "Mapping" for getting dictionary-interface
+    # inherit from abstract class "MutableMapping" for getting dictionary-interface
     # https://stackoverflow.com/questions/19775685/how-to-correctly-implement-the-mapping-protocol-in-python
     # https://docs.python.org/2.7/library/collections.html#collections.MutableMapping
     # (then the options are similar to Tkinter widgets: http://effbot.org/tkinterbook/tkinter-widget-configuration.htm )
@@ -164,6 +165,14 @@ class _Mydict(collections.abc.Mapping):
 
     def __getitem__(self, key):
         return self._values_dict[key]
+
+    # help from https://stackoverflow.com/questions/8542343/object-does-not-support-item-assignment-error
+    # and https://stackoverflow.com/questions/47081356/implementing-a-dict-like-object-with-getattr-and-setattr-functionality
+    def __setitem__(self, key, val):
+        self._values_dict[key] = val
+
+    def __delitem__(self, key):
+        del self._values_dict[key]
 
     def __iter__(self):
         return iter(self._values_dict)
@@ -183,7 +192,8 @@ class _Mydict(collections.abc.Mapping):
 
     def __repr__(self):
         """ developer representation of this object """
-        return '_Mydict(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return '_Mydict(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
     def __str__(self):
         return '' + str(self._values_dict)
@@ -209,7 +219,8 @@ class _Mylist(collections.abc.Sequence):
 
     def __repr__(self):
         """ developer representation of this object """
-        return '_Mylist(' + repr(self._values_list) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return '_Mylist(' + ', '.join('%s' % item for item in self._values_list) + ')'
 
     def __str__(self):
         return '' + str(self._values_list)
@@ -276,7 +287,7 @@ class _Request(object):
 
     def __repr__(self):
         """ developer representation of this object """
-        return '_Request(' + repr(self.as_dict()) + ')'
+        return '_Request(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self.as_dict().items()) + ')'
 
     def __str__(self):
         return '' + str(self.as_dict())
@@ -311,7 +322,8 @@ class Query(_Mydict):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'Query(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'Query(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 class HistData(_Mydict):
@@ -353,7 +365,8 @@ class HistData(_Mydict):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'HistData(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'HistData(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 class Changelog(_Mydict):
@@ -376,7 +389,8 @@ class Changelog(_Mydict):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'Changelog(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'Changelog(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 
@@ -761,7 +775,8 @@ class ExtInfos(_Mydict):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'ExtInfos(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'ExtInfos(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 class HistData_detail(_Mylist):
@@ -776,8 +791,21 @@ class HistData_detail(_Mylist):
         super(HistData_detail, self).__init__()
         # internal storage: list of dictionarys
 
+        # allowing access to items as attributes: storing items in _Mydict's
+        # (we have to implement a concrete class)
+        class Trendpoint_dict(_Mydict):
+            def __init__(self, **kwargs):
+                super(Trendpoint_dict, self).__init__(**kwargs)
+
+            def __repr__(self):
+                """ developer representation of this object """
+                # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+                return 'Trendpoint_dict(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
+
+
         for histobj in histobj_list:
-            curr_dict = {}
+
+            curr_dict = Trendpoint_dict()
             for field in HistData_detail._fields:
                 if field == 'stamp':
                     # timestamps are ISO 8601 formatted (or "null" after DMS restart or on nodes with type "none")
@@ -803,7 +831,8 @@ class HistData_detail(_Mylist):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'HistData_detail(' + repr(self._values_list) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'HistData_detail(' + ', '.join('%s' % item for item in self._values_list) + ')'
 
 
 class HistData_compact(_Mylist):
@@ -827,12 +856,15 @@ class HistData_compact(_Mylist):
                 logger.exception('constructor of HistData_compact(): ERROR: timestamp in current response could not get parsed as valid datetime.datetime() object!')
                 stamp = None
 
-            curr_tuple = (stamp, value)
-            self._values_list.append(curr_tuple)
+            # allowing attribute-access to items, based on example from
+            # https://docs.python.org/3/library/collections.html#collections.namedtuple
+            Trendpoint = namedtuple(typename='Trendpoint_tuple', field_names=['stamp', 'value'])
+            self._values_list.append(Trendpoint(stamp, value))
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'HistData_compact(' + repr(self._values_list) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'HistData_compact(' + ', '.join('%s' % item for item in self._values_list) + ')'
 
 
 class Changelog_Protocol(_Mylist):
@@ -878,7 +910,8 @@ class Changelog_Protocol(_Mylist):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'Changelog_Protocol(' + repr(self._values_list) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'Changelog_Protocol(' + ', '.join('%s' % item for item in self._values_list) + ')'
 
 
 class Changelog_Alarm(Changelog_Protocol):
@@ -926,7 +959,8 @@ class Changelog_Alarm(Changelog_Protocol):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'Changelog_Alarm(' + repr(self._values_list) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'Changelog_Alarm(' + ', '.join('%s' % item for item in self._values_list) + ')'
 
 
 
@@ -1040,7 +1074,8 @@ class RespGet(_Mydict, _Response):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'RespGet(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'RespGet(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 class RespSet(_Mydict, _Response):
@@ -1077,7 +1112,8 @@ class RespSet(_Mydict, _Response):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'RespSet(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'RespSet(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 class RespRen(_Mydict, _Response):
@@ -1104,7 +1140,8 @@ class RespRen(_Mydict, _Response):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'RespRen(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'RespRen(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 class RespDel(_Mydict, _Response):
@@ -1130,7 +1167,8 @@ class RespDel(_Mydict, _Response):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'RespDel(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'RespDel(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 
@@ -1177,7 +1215,8 @@ class RespSub(_Mydict, _Response):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'RespSub(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'RespSub(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 class RespUnsub(_Mydict, _Response):
@@ -1223,7 +1262,8 @@ class RespUnsub(_Mydict, _Response):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'RespUnsub(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'RespSub(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 class RespChangelogGetGroups(_Mydict, _Response):
@@ -1248,7 +1288,8 @@ class RespChangelogGetGroups(_Mydict, _Response):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'RespChangelogGetGroups(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'RespChangelogGetGroups(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 class RespChangelogRead(_Mydict, _Response):
@@ -1285,7 +1326,8 @@ class RespChangelogRead(_Mydict, _Response):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'RespChangelogRead(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'RespChangelogRead(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 class SubscriptionES(eventsystem.EventSystem):
@@ -1390,7 +1432,8 @@ class DMSEvent(_Mydict):
 
     def __repr__(self):
         """ developer representation of this object """
-        return 'DMSEvent(' + repr(self._values_dict) + ')'
+        # idea from https://stackoverflow.com/questions/25278563/python-return-dictionary-in-separate-lines-in-repr-method
+        return 'DMSEvent(' + ', '.join('%s=%s' % (k, repr(v)) for k, v in self._values_dict.items()) + ')'
 
 
 
@@ -1925,8 +1968,8 @@ class DMSClient(object):
 
 if __name__ == '__main__':
 
-    #test_set = set(range(10))
-    test_set = {1}
+    test_set = set(range(18))
+    #test_set = {4}
 
 
     with DMSClient('test', 'user') as myClient:
@@ -1995,6 +2038,17 @@ if __name__ == '__main__':
                                        showExtInfos=INFO_ALL
                                        )
             print('response: ' + repr(response))
+            if not response[0].message:
+                curr_histData = response[0].histData
+                if curr_histData:
+                    # depending on internal structure access to items was different:
+                    # format="detail"
+                    #print('first timestamp is "' + repr(curr_histData[0]["stamp"]) + '"')
+                    # format="compact"
+                    #print('first timestamp is "' + repr(curr_histData[0]["stamp"]) + '"')
+
+                    # =>new: providing attribute method for both formats! :-)
+                    print('first timestamp is "' + repr(curr_histData[0].stamp) + '"')
 
         if 5 in test_set:
             print('\nTesting writing of DMS datapoint:')
