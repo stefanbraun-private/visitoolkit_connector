@@ -34,7 +34,10 @@ All rights reserved by the respective owner 'MST Systemtechnik AG'*
 ```python
 from visitoolkit_connector import connector
 ```
-*FIXME: add examples...*   
+*TODO: add examples...*   
+
+=>at the moment you find minimal usage examples at the end of the main Python script:  
+https://github.com/stefanbraun-private/visitoolkit_connector/blob/master/visitoolkit_connector/connector.py  
    
    
 Increasing logging level for bughunting:
@@ -56,4 +59,7 @@ Add efficiency...
 Reduce manual error-prone processes...  
 Add missing features...
 
-Disclaimer: Use 'visitoolkit' at your own risk!
+Disclaimer:  
+'visitoolkit' is an open source homegrown hobby project  
+without any warranty and liability.  
+=>Use 'visitoolkit' at your own risk!  

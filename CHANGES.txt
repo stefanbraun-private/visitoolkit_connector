@@ -1,2 +1,4 @@
+v0.1.2, December 16th 2018  -- modified all __repr__() methods for functional output
+                               improved usage of trenddata (field "histData" in Get command)
 v0.1.1, September 20th 2018 -- Improved README. Changed indentation from tabs to space (PEP8)
 v0.1.0, September 20th 2018 -- Initial release. Migrated from Python 2 code.

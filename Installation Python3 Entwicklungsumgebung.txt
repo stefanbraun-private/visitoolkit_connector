@@ -37,6 +37,8 @@ https://gitforwindows.org/
 
 4) PyCharm installieren
 PyCharm Community Version wählen
+=>Hinweis: Version 2018.2.4 läuft gut,
+bei neueren Versionen hat die Python-Codeprüfung Mühe mit Symbolreferenzen zu korrekt importierten Modulen... :-(
 https://www.jetbrains.com/pycharm/download/#section=windows
 
 =>Desktop-Link "64-bit launcher"
